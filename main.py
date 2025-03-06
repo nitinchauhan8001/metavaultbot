@@ -6,16 +6,22 @@ import random
 from flask import Flask
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from pyrogram.enums import ParseMode  # Use enum for parse modes
+from pyrogram.enums import ParseMode
+from dotenv import load_dotenv  # Only for local development
 
-# === Bot Credentials ===
-API_ID = 25089395
-API_HASH = "ee3bc5af4a3109cbcc2edb6dd54b206a"
-BOT_TOKEN = "8032993341:AAHKPcx-Z5qfIkHBs1R_vuAqh1E5BLpKzII"
+# Load environment variables from .env file (optional, for local testing)
+load_dotenv()
+
+# === Bot Credentials (Loaded from Environment Variables) ===
+API_ID = os.getenv("API_ID", "25089395")  # Default value provided; change if needed
+API_HASH = os.getenv("API_HASH", "ee3bc5af4a3109cbcc2edb6dd54b206a")  # Default value provided; change if needed
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+if not BOT_TOKEN:
+    raise Exception("BOT_TOKEN environment variable is not set! Please set it in your deployment environment.")
 
 # === Channel and Admin Info ===
-CHANNEL_USERNAME = "MetaaVault"  # Public channel for updates
-ADMIN_USERNAME = "NITINGURJAR800800"  # Admin link for requests
+CHANNEL_USERNAME = os.getenv("CHANNEL_USERNAME", "MetaaVault")  # Default value; change if needed
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "NITINGURJAR800800")  # Default value; change if needed
 
 # === Delete Locked Session File ===
 if os.path.exists("Metavaults_bot.session"):
@@ -41,7 +47,7 @@ app = Client("Metavaults_bot",
              bot_token=BOT_TOKEN)
 
 # === Flask Server for Uptime (Optional) ===
-flask_app = Flask(__name__)
+flask_app = Flask(_name_)
 
 @flask_app.route('/')
 def home():
@@ -59,7 +65,6 @@ time.sleep(2)
 @app.on_message(filters.command("test"))
 def test_keyboard(client, message):
     kb = InlineKeyboardMarkup([[InlineKeyboardButton("Test Button", url="https://example.com")]])
-    # Use enum value for parse_mode
     message.reply_text("Testing Keyboard", reply_markup=kb, parse_mode=ParseMode.MARKDOWN)
 
 # === /start Command Handler (Welcome Message + Dashboard) ===
@@ -90,7 +95,7 @@ def main_menu_keyboard():
         [InlineKeyboardButton("🎥 Trending Movies", callback_data="trending"),
          InlineKeyboardButton("💡 Surprise Me!", callback_data="surprise")],
         [InlineKeyboardButton("🔍 Search Movie", callback_data="search")],
-        [InlineKeyboardButton("📩 Request Movie", url="https://t.me/NITINGURJAR800800")],
+        [InlineKeyboardButton("📩 Request Movie", url=f"https://t.me/{ADMIN_USERNAME}")],
         [InlineKeyboardButton("📚 Education", callback_data="education")],
         [InlineKeyboardButton("💰 Earn Money Online", callback_data="earn_money")],
         [InlineKeyboardButton("👍 Facebook", url="https://www.facebook.com/share/1F6MqUMUDz/"),
@@ -272,7 +277,7 @@ def education_class_handler(client, callback_query):
         [InlineKeyboardButton("Sample Papers", callback_data=f"edu_{class_num}_sample")],
         [InlineKeyboardButton("Study Material", callback_data=f"edu_{class_num}_study")],
         [InlineKeyboardButton("🔙 Back", callback_data="education")],
-        [InlineKeyboardButton("Contact Admin", url="https://t.me/NITINGURJAR800800")]
+        [InlineKeyboardButton("Contact Admin", url=f"https://t.me/{ADMIN_USERNAME}")]
     ]
     callback_query.message.edit_text(f"Class {class_num} Education Resources:", parse_mode=ParseMode.MARKDOWN, reply_markup=InlineKeyboardMarkup(buttons))
 
@@ -284,7 +289,7 @@ def education_request_handler(client, callback_query):
     resource = "Sample Papers" if req_type == "sample" else "Study Material"
     callback_query.answer(f"This content is paid (Rs 500 per month).", show_alert=True)
     kb = InlineKeyboardMarkup([
-        [InlineKeyboardButton("Contact Admin", url="https://t.me/NITINGURJAR800800")],
+        [InlineKeyboardButton("Contact Admin", url=f"https://t.me/{ADMIN_USERNAME}")],
         [InlineKeyboardButton("🔙 Back", callback_data="education")]
     ])
     callback_query.edit_message_reply_markup(reply_markup=kb)
@@ -294,7 +299,7 @@ def education_request_handler(client, callback_query):
 @app.on_callback_query(filters.regex("^earn_money$"))
 def earn_money_handler(client, callback_query):
     callback_query.answer("Earn Money Online", show_alert=True)
-    kb = InlineKeyboardMarkup([[InlineKeyboardButton("Contact Admin", url="https://t.me/NITINGURJAR800800")]])
+    kb = InlineKeyboardMarkup([[InlineKeyboardButton("Contact Admin", url=f"https://t.me/{ADMIN_USERNAME}")]])
     callback_query.message.reply_text(
         "Please contact the admin for Earn Money Online opportunities.",
         parse_mode=ParseMode.MARKDOWN,
